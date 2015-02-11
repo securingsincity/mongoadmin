@@ -1,0 +1,11 @@
+port = "9999"
+
+[[db]]
+label = "local-1"
+database = "test1"
+connectionString = "mongodb://localhost"
+
+[[db]]
+label = "local-2"
+database = "test2"
+connectionString = "mongodb://localhost"
