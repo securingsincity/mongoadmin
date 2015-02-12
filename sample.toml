@@ -1,5 +1,8 @@
 port = "9999"
+authUsername = "mongoadmin"
 
+# Use http://www.htaccesstools.com/htpasswd-generator/ to generate a hash from your plaintext password
+authPassword = "$apr1$WLm3YOt4$pb2Q6d0yHqWi8JSrGajY3/"
 [[db]]
 label = "local-1"
 database = "test1"
