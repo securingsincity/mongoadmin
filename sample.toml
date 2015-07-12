@@ -1,12 +1,12 @@
 port = "9999"
-authUsername = "james"
+authUsername = "username"
 
 # Use http://www.htaccesstools.com/htpasswd-generator/ to generate a hash from your plaintext password
-authPassword = "james"
+authPassword = "password"
 
 [[db]]
 label = "local-1"
-database = "maxwellv5"
+database = "test"
 connectionString = "mongodb://localhost"
 
 [[db]]
