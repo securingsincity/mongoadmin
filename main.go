@@ -101,20 +101,6 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		io.WriteString(w, HTML)
-	}).Methods("GET")
-
-	router.HandleFunc("/app.js", func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "application/javascript")
-		io.WriteString(w, JAVASCRIPT)
-	}).Methods("GET")
-
-	router.HandleFunc("/foo", func(w http.ResponseWriter, req *http.Request) {
-		io.WriteString(w, "FOO")
-	}).Methods("GET")
-
 	router.HandleFunc("/databases", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		marshaled, _ := json.Marshal(conf.DB)
@@ -169,6 +155,8 @@ func main() {
 
 	}).Methods("GET")
 	router.HandleFunc("/databases/{db}/collections/{col}/find", func(w http.ResponseWriter, req *http.Request) {
+		limit := 50
+		skip := 0
 
 		sess, col, err := getCollection(req)
 		if err != nil {
@@ -179,8 +167,18 @@ func main() {
 
 		defer sess.Close()
 		// v := make(map[string]string)
+
+		limitQuery := req.URL.Query().Get("limit")
+		if limitQuery != "" {
+			limit, _ = strconv.Atoi(limitQuery)
+		}
+		skipQuery := req.URL.Query().Get("skip")
+		if skipQuery != "" {
+			skip, _ = strconv.Atoi(skipQuery)
+		}
+
 		r := []bson.M{}
-		err = col.Find(bson.M{}).All(&r)
+		err = col.Find(bson.M{}).Skip(skip).Limit(limit).All(&r)
 		if err != nil {
 			w.WriteHeader(400)
 			io.WriteString(w, err.Error())
@@ -189,6 +187,32 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		marshaled, _ := json.Marshal(r)
 		io.WriteString(w, string(marshaled))
+
+	}).Methods("GET")
+	router.HandleFunc("/databases/{db}/collections/{col}/findById/{id}", func(w http.ResponseWriter, req *http.Request) {
+		sess, col, err := getCollection(req)
+		if err != nil {
+			w.WriteHeader(400)
+			io.WriteString(w, err.Error())
+			return
+		}
+
+		defer sess.Close()
+		vars := mux.Vars(req)
+		if id, ok := vars["id"]; ok {
+			r := []bson.M{}
+
+			err = col.Find(bson.M{"_id": bson.ObjectId(id)}).All(&r)
+			if err != nil {
+				w.WriteHeader(400)
+				io.WriteString(w, err.Error())
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			marshaled, _ := json.Marshal(r)
+			io.WriteString(w, string(marshaled))
+		}
+		// v := make(map[string]string)
 
 	}).Methods("GET")
 	router.HandleFunc("/databases/{db}/collections/{col}/total", func(w http.ResponseWriter, req *http.Request) {
@@ -288,7 +312,7 @@ func main() {
 		io.WriteString(w, "OK")
 
 	}).Methods("POST")
-
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./public/")))
 	// http.Handle("/", router)
 	n := negroni.New()
 	n.Use(negroni.HandlerFunc(auth.Basic(appConfig.AuthUsername, appConfig.AuthPassword)))
