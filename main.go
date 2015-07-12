@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/BurntSushi/toml"
-	auth "github.com/abbot/go-http-auth"
+	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 	"github.com/maxwellhealth/mgo"
+	auth "github.com/nabeken/negroni-auth"
 	"io"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"os"
@@ -76,14 +78,6 @@ func getCollection(req *http.Request) (*mgo.Session, *mgo.Collection, error) {
 	return sess, &mgo.Collection{}, errors.New("Missing collection parameter")
 }
 
-func basicAuth(user, realm string) string {
-	if user == appConfig.AuthUsername {
-		// password is "hello"
-		return appConfig.AuthPassword
-	}
-	return ""
-}
-
 func main() {
 	log.Println("booting")
 	args := os.Args
@@ -101,7 +95,7 @@ func main() {
 		}
 
 	}
-	authenticator := auth.NewBasicAuthenticator("MongoAdmin", basicAuth)
+	// authenticator := auth.NewBasicAuthenticator("MongoAdmin", basicAuth)
 
 	appConfig = conf
 
@@ -117,14 +111,18 @@ func main() {
 		io.WriteString(w, JAVASCRIPT)
 	}).Methods("GET")
 
-	router.HandleFunc("/databases", auth.JustCheck(authenticator, func(w http.ResponseWriter, req *http.Request) {
+	router.HandleFunc("/foo", func(w http.ResponseWriter, req *http.Request) {
+		io.WriteString(w, "FOO")
+	}).Methods("GET")
+
+	router.HandleFunc("/databases", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		marshaled, _ := json.Marshal(conf.DB)
 
 		io.WriteString(w, string(marshaled))
-	})).Methods("GET")
+	}).Methods("GET")
 
-	router.HandleFunc("/databases/{db}/collections", auth.JustCheck(authenticator, func(w http.ResponseWriter, req *http.Request) {
+	router.HandleFunc("/databases/{db}/collections", func(w http.ResponseWriter, req *http.Request) {
 
 		sess, db, err := getDatabase(req)
 		if err != nil {
@@ -146,9 +144,9 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		marshaled, _ := json.Marshal(cols)
 		io.WriteString(w, string(marshaled))
-	})).Methods("GET")
+	}).Methods("GET")
 
-	router.HandleFunc("/databases/{db}/collections/{col}/indexes", auth.JustCheck(authenticator, func(w http.ResponseWriter, req *http.Request) {
+	router.HandleFunc("/databases/{db}/collections/{col}/indexes", func(w http.ResponseWriter, req *http.Request) {
 
 		sess, col, err := getCollection(req)
 		if err != nil {
@@ -169,9 +167,8 @@ func main() {
 		marshaled, _ := json.Marshal(idxs)
 		io.WriteString(w, string(marshaled))
 
-	})).Methods("GET")
-
-	router.HandleFunc("/databases/{db}/collections/{col}/total", auth.JustCheck(authenticator, func(w http.ResponseWriter, req *http.Request) {
+	}).Methods("GET")
+	router.HandleFunc("/databases/{db}/collections/{col}/find", func(w http.ResponseWriter, req *http.Request) {
 
 		sess, col, err := getCollection(req)
 		if err != nil {
@@ -181,8 +178,31 @@ func main() {
 		}
 
 		defer sess.Close()
+		// v := make(map[string]string)
+		r := []bson.M{}
+		err = col.Find(bson.M{}).All(&r)
+		if err != nil {
+			w.WriteHeader(400)
+			io.WriteString(w, err.Error())
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		marshaled, _ := json.Marshal(r)
+		io.WriteString(w, string(marshaled))
 
-		count, err := col.Count()
+	}).Methods("GET")
+	router.HandleFunc("/databases/{db}/collections/{col}/total", func(w http.ResponseWriter, req *http.Request) {
+
+		sess, col, err := getCollection(req)
+		if err != nil {
+			w.WriteHeader(400)
+			io.WriteString(w, err.Error())
+			return
+		}
+
+		defer sess.Close()
+		v := make(map[string]string)
+		count, err := col.Find(v).Count()
 		if err != nil {
 			w.WriteHeader(400)
 			io.WriteString(w, err.Error())
@@ -190,9 +210,9 @@ func main() {
 		}
 		io.WriteString(w, strconv.Itoa(count))
 
-	})).Methods("GET")
+	}).Methods("GET")
 
-	router.HandleFunc("/databases/{db}/collections/{col}/newIndex", auth.JustCheck(authenticator, func(w http.ResponseWriter, req *http.Request) {
+	router.HandleFunc("/databases/{db}/collections/{col}/newIndex", func(w http.ResponseWriter, req *http.Request) {
 
 		sess, col, err := getCollection(req)
 		if err != nil {
@@ -235,9 +255,9 @@ func main() {
 		marshaled, _ := json.Marshal(idx)
 		io.WriteString(w, string(marshaled))
 
-	})).Methods("POST")
+	}).Methods("POST")
 
-	router.HandleFunc("/databases/{db}/collections/{col}/dropIndex", auth.JustCheck(authenticator, func(w http.ResponseWriter, req *http.Request) {
+	router.HandleFunc("/databases/{db}/collections/{col}/dropIndex", func(w http.ResponseWriter, req *http.Request) {
 
 		sess, col, err := getCollection(req)
 		if err != nil {
@@ -267,9 +287,12 @@ func main() {
 		}
 		io.WriteString(w, "OK")
 
-	})).Methods("POST")
+	}).Methods("POST")
 
-	http.Handle("/", router)
-
-	panic(http.ListenAndServe(":"+conf.Port, http.DefaultServeMux))
+	// http.Handle("/", router)
+	n := negroni.New()
+	n.Use(negroni.HandlerFunc(auth.Basic(appConfig.AuthUsername, appConfig.AuthPassword)))
+	n.UseHandler(router)
+	n.Run(":" + conf.Port)
+	// panic(http.ListenAndServe(":"+conf.Port, http.DefaultServeMux))
 }
