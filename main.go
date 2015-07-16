@@ -7,9 +7,9 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 	"github.com/maxwellhealth/mgo"
+	"github.com/maxwellhealth/mgo/bson"
 	auth "github.com/nabeken/negroni-auth"
 	"io"
-	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"os"
@@ -189,20 +189,45 @@ func main() {
 		io.WriteString(w, string(marshaled))
 
 	}).Methods("GET")
-	router.HandleFunc("/databases/{db}/collections/{col}/findById/{id}", func(w http.ResponseWriter, req *http.Request) {
-		sess, col, err := getCollection(req)
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
+	router.HandleFunc("/databases/{db}/collections/{col}", func(w http.ResponseWriter, req *http.Request) {
 
-		defer sess.Close()
+		// sess, col, err := getCollection(req)
+		// if err != nil {
+		// 	w.WriteHeader(400)
+		// 	io.WriteString(w, err.Error())
+		// 	return
+		// }
+
+		// defer sess.Close()
+		// v := make(map[string]string)
+
+		r := req
+		// err = col.Insert()
+		// if err != nil {
+		// 	w.WriteHeader(400)
+		// 	io.WriteString(w, err.Error())
+		// 	return
+		// }
+		// w.Header().Set("Content-Type", "application/json")
+		marshaled, _ := json.Marshal(r)
+		io.WriteString(w, string(marshaled))
+
+	}).Methods("POST")
+	router.HandleFunc("/databases/{db}/collections/{col}/findById/{mongoId}", func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
-		if id, ok := vars["id"]; ok {
-			r := []bson.M{}
+		if id, ok := vars["mongoId"]; ok {
+			sess, col, err := getCollection(req)
+			if err != nil {
+				w.WriteHeader(400)
+				io.WriteString(w, err.Error())
+				return
+			}
 
-			err = col.Find(bson.M{"_id": bson.ObjectId(id)}).All(&r)
+			defer sess.Close()
+		
+			r := bson.M{}
+			idHex := bson.ObjectIdHex(id)
+			err = col.Find(bson.D{{"_id",idHex}}).One(&r)
 			if err != nil {
 				w.WriteHeader(400)
 				io.WriteString(w, err.Error())
