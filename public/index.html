@@ -40,6 +40,7 @@
               </ul>
               <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="find">
+                  <div class="form">
                   <div class="row">
                     <div class="col-sm-6">
                       <div class="form-group">
@@ -56,7 +57,11 @@
                       </div>
                     </div>
                   </div>
-                  <div class="row"><button class="btn btn-primary" ng-click="findMoreRecords()">Find</button></div>
+                  <div class="row">
+                  <div class="form-group  col-sm-12">
+                  <button class="btn btn-primary" ng-click="findMoreRecords()">Find</button></div>
+                  </div>
+                </div>
                   <div class="row">
                     <div class="col-sm-12"><pre>{{findResults | json}}</pre></div>
                   </div>
@@ -71,7 +76,11 @@
                       </div>
                     </div>
                   </div>
-                  <div class="row"><button  ng-disabled="!findById.id" class="btn btn-primary" ng-click="findByIdQuery()">Find By Id</button></div>
+                  <div class="row">
+                    <div class="form-group  col-sm-12">
+                      <button  ng-disabled="!findById.id" class="btn btn-primary" ng-click="findByIdQuery()">Find By Id</button>
+                    </div>
+                  </div>
                   <div class="row">
                     <div class="col-sm-12"><pre>{{findByIdResults | json}}</pre></div>
                   </div>

@@ -200,15 +200,15 @@ func main() {
 
 		// defer sess.Close()
 		// v := make(map[string]string)
-
-		r := req
-		// err = col.Insert()
-		// if err != nil {
-		// 	w.WriteHeader(400)
-		// 	io.WriteString(w, err.Error())
-		// 	return
-		// }
-		// w.Header().Set("Content-Type", "application/json")
+		r := bson.M{}
+		decoder := json.NewDecoder(req.Body)
+		err := decoder.Decode(&r)
+		if err != nil {
+			w.WriteHeader(400)
+			io.WriteString(w, err.Error())
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
 		marshaled, _ := json.Marshal(r)
 		io.WriteString(w, string(marshaled))
 
