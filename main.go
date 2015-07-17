@@ -224,10 +224,10 @@ func main() {
 			}
 
 			defer sess.Close()
-		
+
 			r := bson.M{}
 			idHex := bson.ObjectIdHex(id)
-			err = col.Find(bson.D{{"_id",idHex}}).One(&r)
+			err = col.Find(bson.D{{"_id", idHex}}).One(&r)
 			if err != nil {
 				w.WriteHeader(400)
 				io.WriteString(w, err.Error())

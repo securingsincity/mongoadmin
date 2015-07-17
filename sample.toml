@@ -6,7 +6,7 @@ authPassword = "password"
 
 [[db]]
 label = "local-1"
-database = "test"
+database = "test1"
 connectionString = "mongodb://localhost"
 
 [[db]]
