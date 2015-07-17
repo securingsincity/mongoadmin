@@ -337,9 +337,10 @@ func main() {
 		io.WriteString(w, "OK")
 
 	}).Methods("POST")
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./public/")))
+
 	// http.Handle("/", router)
-	n := negroni.New()
+	n := negroni.Classic()
+	n.Use(negroni.NewStatic(http.Dir("public")))
 	n.Use(negroni.HandlerFunc(auth.Basic(appConfig.AuthUsername, appConfig.AuthPassword)))
 	n.UseHandler(router)
 	n.Run(":" + conf.Port)
