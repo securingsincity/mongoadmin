@@ -1,7 +1,6 @@
 #MongoAdmin
 
-This is a tool for infrastructure guys to let those annoying engineers add their own indexes and run simple find and find by id queries.
-
+This is a tool for simple administration of your MongoDB instance. You can add and remove indexes and run simple find and find by id queries. This is not a secure or production ready solution by any stretch of the imagination. But it is a good first start, especially if you want a UI for a remote (non-production) mongodb instance. 
 
 ## Requirements
 
