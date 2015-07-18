@@ -7,13 +7,13 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 	"github.com/maxwellhealth/mgo"
-	"github.com/maxwellhealth/mgo/bson"
-	auth "github.com/nabeken/negroni-auth"
+	// "github.com/maxwellhealth/mgo/bson"
+	// auth "github.com/nabeken/negroni-auth"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
+	// "strconv"
 	"strings"
 )
 
@@ -107,241 +107,20 @@ func main() {
 
 		io.WriteString(w, string(marshaled))
 	}).Methods("GET")
-
-	router.HandleFunc("/databases/{db}/collections", func(w http.ResponseWriter, req *http.Request) {
-
-		sess, db, err := getDatabase(req)
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-
-		defer sess.Close()
-
-		cols, err := db.CollectionNames()
-
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		marshaled, _ := json.Marshal(cols)
-		io.WriteString(w, string(marshaled))
-	}).Methods("GET")
-
-	router.HandleFunc("/databases/{db}/collections/{col}/indexes", func(w http.ResponseWriter, req *http.Request) {
-
-		sess, col, err := getCollection(req)
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-
-		defer sess.Close()
-
-		idxs, err := col.Indexes()
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		marshaled, _ := json.Marshal(idxs)
-		io.WriteString(w, string(marshaled))
-
-	}).Methods("GET")
-	router.HandleFunc("/databases/{db}/collections/{col}/find", func(w http.ResponseWriter, req *http.Request) {
-		limit := 50
-		skip := 0
-
-		sess, col, err := getCollection(req)
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-
-		defer sess.Close()
-		// v := make(map[string]string)
-
-		limitQuery := req.URL.Query().Get("limit")
-		if limitQuery != "" {
-			limit, _ = strconv.Atoi(limitQuery)
-		}
-		skipQuery := req.URL.Query().Get("skip")
-		if skipQuery != "" {
-			skip, _ = strconv.Atoi(skipQuery)
-		}
-
-		r := []bson.M{}
-		err = col.Find(bson.M{}).Skip(skip).Limit(limit).All(&r)
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		marshaled, _ := json.Marshal(r)
-		io.WriteString(w, string(marshaled))
-
-	}).Methods("GET")
-	router.HandleFunc("/databases/{db}/collections/{col}", func(w http.ResponseWriter, req *http.Request) {
-
-		// sess, col, err := getCollection(req)
-		// if err != nil {
-		// 	w.WriteHeader(400)
-		// 	io.WriteString(w, err.Error())
-		// 	return
-		// }
-
-		// defer sess.Close()
-		// v := make(map[string]string)
-		r := bson.M{}
-		decoder := json.NewDecoder(req.Body)
-		err := decoder.Decode(&r)
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		marshaled, _ := json.Marshal(r)
-		io.WriteString(w, string(marshaled))
-
-	}).Methods("POST")
-	router.HandleFunc("/databases/{db}/collections/{col}/findById/{mongoId}", func(w http.ResponseWriter, req *http.Request) {
-		vars := mux.Vars(req)
-		if id, ok := vars["mongoId"]; ok {
-			sess, col, err := getCollection(req)
-			if err != nil {
-				w.WriteHeader(400)
-				io.WriteString(w, err.Error())
-				return
-			}
-
-			defer sess.Close()
-
-			r := bson.M{}
-			idHex := bson.ObjectIdHex(id)
-			err = col.Find(bson.D{{"_id", idHex}}).One(&r)
-			if err != nil {
-				w.WriteHeader(400)
-				io.WriteString(w, err.Error())
-				return
-			}
-			w.Header().Set("Content-Type", "application/json")
-			marshaled, _ := json.Marshal(r)
-			io.WriteString(w, string(marshaled))
-		}
-		// v := make(map[string]string)
-
-	}).Methods("GET")
-	router.HandleFunc("/databases/{db}/collections/{col}/total", func(w http.ResponseWriter, req *http.Request) {
-
-		sess, col, err := getCollection(req)
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-
-		defer sess.Close()
-		v := make(map[string]string)
-		count, err := col.Find(v).Count()
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-		io.WriteString(w, strconv.Itoa(count))
-
-	}).Methods("GET")
-
-	router.HandleFunc("/databases/{db}/collections/{col}/newIndex", func(w http.ResponseWriter, req *http.Request) {
-
-		sess, col, err := getCollection(req)
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-
-		defer sess.Close()
-
-		keys := req.URL.Query().Get("keys")
-		sparse := req.URL.Query().Get("sparse")
-		unique := req.URL.Query().Get("unique")
-
-		if len(keys) == 0 {
-			w.WriteHeader(400)
-			io.WriteString(w, "Missing keys param")
-			return
-		}
-		idx := mgo.Index{
-			Key:        strings.Split(keys, ","),
-			Background: true,
-		}
-
-		if sparse == "true" {
-			idx.Sparse = true
-		}
-
-		if unique == "true" {
-			idx.Unique = true
-		}
-
-		err = col.EnsureIndex(idx)
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		marshaled, _ := json.Marshal(idx)
-		io.WriteString(w, string(marshaled))
-
-	}).Methods("POST")
-
-	router.HandleFunc("/databases/{db}/collections/{col}/dropIndex", func(w http.ResponseWriter, req *http.Request) {
-
-		sess, col, err := getCollection(req)
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-
-		defer sess.Close()
-
-		keys := req.URL.Query().Get("keys")
-
-		if len(keys) == 0 {
-			w.WriteHeader(400)
-			io.WriteString(w, "Missing keys param")
-			return
-		}
-
-		ks := strings.Split(keys, ",")
-
-		err = col.DropIndex(ks...)
-
-		if err != nil {
-			w.WriteHeader(400)
-			io.WriteString(w, err.Error())
-			return
-		}
-		io.WriteString(w, "OK")
-
-	}).Methods("POST")
+	router.HandleFunc("/databases/{db}/collections", collections).Methods("GET")
+	router.HandleFunc("/databases/{db}/collections/{col}", insert).Methods("POST")
+	router.HandleFunc("/databases/{db}/collections/{col}/indexes", indexes).Methods("GET")
+	router.HandleFunc("/databases/{db}/collections/{col}/find", find).Methods("GET")
+	router.HandleFunc("/databases/{db}/collections/{col}/total", total).Methods("GET")
+	router.HandleFunc("/databases/{db}/collections/{col}/newIndex", addIndex).Methods("POST")
+	router.HandleFunc("/databases/{db}/collections/{col}/dropIndex", dropIndex).Methods("POST")
+	router.HandleFunc("/databases/{db}/collections/{col}/findById/{mongoId}", findById).Methods("GET")
+	router.HandleFunc("/databases/{db}/collections/{col}/update/{mongoId}", updateById).Methods("PUT", "POST")
 
 	// http.Handle("/", router)
 	n := negroni.Classic()
+	// n.Use(negroni.HandlerFunc(auth.Basic(appConfig.AuthUsername, appConfig.AuthPassword)))
 	n.Use(negroni.NewStatic(http.Dir("public")))
-	n.Use(negroni.HandlerFunc(auth.Basic(appConfig.AuthUsername, appConfig.AuthPassword)))
 	n.UseHandler(router)
 	n.Run(":" + conf.Port)
 	// panic(http.ListenAndServe(":"+conf.Port, http.DefaultServeMux))
