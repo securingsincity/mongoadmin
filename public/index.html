@@ -1,74 +1,79 @@
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="/bower_components/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/bower_components/materialize/dist/css/materialize.min.css"/>
     <script src="/bower_components/angular/angular.min.js"></script>
     <script src="/bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/bower_components/materialize/dist/js/materialize.min.js"></script>
     <script src="/js/app.js"></script>
   </head>
   <body ng-app="app">
     <div class="container-fluid" ng-controller="MainCtrl">
-      <div class="row">
-        <div class="col-sm-12">
+      <div class="row light-blue darken-1 white-text">
+        <div class="col s12">
           <h1>Manage DBs.</h1>
         </div>
       </div>
       <div class="row">
-        <div class="col-sm-3">
-          <div class="list-group">
+        <div class="col s3 white-text">
+          <div class="list-group ">
             <a class="list-group-item" ng-repeat="db in dbs" ng-click="setActive(db)">
-              <h4 class="list-group-item-heading">{{db.label}}</h4>
+              <h6 class="list-group-item-heading">{{db.label}}</h4>
             </a>
           </div>
         </div>
-        <div class="col-sm-9" ng-show="activeDb">
-          <h2>{{activeDb.label}}</h2>
-          <select ng-options="col for col in collections" ng-model="activeCollection" class="form-control">
-            <option value="">Pick a collection.</option>
-          </select>
+        <div class="col s9" ng-show="activeDb">
+          <div class="teal row col12">
+            <h2>{{activeDb.label}}</h2>
+          
+            <div class="input-field">
+              <select ng-options="col for col in collections" class="browser-default" ng-model="activeCollection">
+                <option value=""  disabled selected>Pick a collection.</option>
+              </select>
+            </div>
+          </div>
           <hr />
           <div ng-show="activeCollection" class="panel panel-default">
             <div class="panel-heading">
-              <h3 class="panel-title">{{activeCollection}}</h3>
-              <h5>{{total | number}} total records</h5>
+              <h3 class="pink-text panel-title">{{activeCollection}}</h3>
+              <h5 class="teal-text">{{total | number}} total records</h5>
             </div>
             <div class="panel-body">
-              <ul class="nav nav-tabs">
-                <li role="presentation" class="active"><a href="#find">Find</a></li>
-                <li role="presentation" ><a href="#findById">Find By Id</a></li>
-                <li role="presentation"><a href="#indexes">Indexes</a></li>
+              <ul class="tabs teal">
+                <li role="presentation" class="tab col s3"><a href="#find" class="white-text active">Find</a></li>
+                <li role="presentation" class="tab col s3"><a href="#findById" class="white-text">Find By Id</a></li>
+                <li role="presentation" class="tab col s3"><a href="#indexes"  class="white-text">Indexes</a></li>
               </ul>
               <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="find">
                   <div class="form">
-                  <div class="row">
-                    <div class="col-sm-6">
-                      <div class="form-group">
-                        <label>Limit</label>
-                        <input type="text" class="form-control input-sm" ng-model="findMore.limit"/>
-                        <p class="help-block">Number of Results</p>
+                    <div class="row">
+                      <div class="col s6">
+                        <div class="form-group">
+                          <label>Limit</label>
+                          <input type="text" class="form-control input-sm" ng-model="findMore.limit"/>
+                          <p class="help-block">Number of Results</p>
+                        </div>
+                      </div>
+                      <div class="col s6">
+                        <div class="form-group">
+                          <label>Skip</label>
+                          <input type="text" class="form-control input-sm" ng-model="findMore.skip"/>
+                          <p class="help-block">Number of Results To Skip</p>
+                        </div>
                       </div>
                     </div>
-                    <div class="col-sm-6">
-                      <div class="form-group">
-                        <label>Skip</label>
-                        <input type="text" class="form-control input-sm" ng-model="findMore.skip"/>
-                        <p class="help-block">Number of Results To Skip</p>
-                      </div>
+                  <div class="row">
+                    <div class="form-group  col s12">
+                      <button class="btn btn-primary" ng-click="findMoreRecords()">Find</button></div>
                     </div>
                   </div>
                   <div class="row">
-                  <div class="form-group  col-sm-12">
-                  <button class="btn btn-primary" ng-click="findMoreRecords()">Find</button></div>
-                  </div>
-                </div>
-                  <div class="row">
-                    <div class="col-sm-12"><pre>{{findResults | json}}</pre></div>
+                    <div class="col s12"><pre>{{findResults | json}}</pre></div>
                   </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="findById">
                   <div class="row">
-                    <div class="col-sm-12">
+                    <div class="col s12">
                       <div class="form-group">
                         <label>Id</label>
                         <input type="text" class="form-control input-sm" ng-model="findById.id"/>
@@ -77,17 +82,17 @@
                     </div>
                   </div>
                   <div class="row">
-                    <div class="form-group  col-sm-12">
+                    <div class="form-group  col s12">
                       <button  ng-disabled="!findById.id" class="btn btn-primary" ng-click="findByIdQuery()">Find By Id</button>
                     </div>
                   </div>
                   <div class="row">
-                    <div class="col-sm-12"><pre>{{findByIdResults | json}}</pre></div>
+                    <div class="col s12"><pre>{{findByIdResults | json}}</pre></div>
                   </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="indexes">
                   <div class="row">
-                    <div class="col-sm-6">
+                    <div class="col s6">
                       <h5>Indexes</h5>
                       <ul class="list-group">
                         <li class="list-group-item" ng-repeat="idx in indexes">
@@ -99,7 +104,7 @@
                       </li>
                     </ul>
                   </div>
-                  <div class="col-sm-6">
+                  <div class="col s6">
                     <h6>Make an index</h6>
                     <div class="form-group">
                       <label>Keys</label>

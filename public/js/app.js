@@ -1,8 +1,9 @@
 $(document).ready(function(){
-  $('.nav.nav-tabs a').click(function (e) {
-    e.preventDefault();
-    $(this).tab('show');
-  });
+  // $('.nav.nav-tabs a').click(function (e) {
+  //   e.preventDefault();
+  //   $(this).tab('show');
+  // });
+  $('ul.tabs').tabs();
 });
 angular.module('app', [])
 .controller('MainCtrl', function($scope, $http) {
