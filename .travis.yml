@@ -10,7 +10,7 @@ install:
 - go get .
 - go build
 script:
-- zip release .
+- zip release *
 deploy:
   provider: releases
   api_key:
