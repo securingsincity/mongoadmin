@@ -1,11 +1,20 @@
 language: go
 services:
-  - mongodb
+- mongodb
 go:
-  - 1.4.2
+- 1.4.2
 before_script:
-  - npm install -g bower
-  - bower install
+- npm install -g bower
+- bower install
 install:
-  - go get .
-  - go build
+- go get .
+- go build
+script:
+- zip release .
+deploy:
+  provider: releases
+  api_key:
+    secure: FUtEhMzY4KYOSuZhNwfZ//k+ryQMF8vxkPVeDIzGqt0XsNRgwu1Ru+e6FbVrbEbdYSDMn9GRGD3YvBYkgedwI/xr+jGgWdCd9UZdpL6eNct89DMwz9Y+K2G6QIrYxcwzH81XJlBeMFd0nUNWiecwzIlA4rvmwrCc/rNTs67HssU=
+  file: release.zip
+  on:
+    repo: maxwellhealth/mongoadmin
