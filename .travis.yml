@@ -1,0 +1,11 @@
+language: go
+services:
+  - mongodb
+go:
+  - 1.4.2
+before_script:
+  - npm install -g bower
+  - bower install
+install:
+  - go get .
+  - go build
