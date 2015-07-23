@@ -80,3 +80,28 @@ func updateById(w http.ResponseWriter, req *http.Request) {
 	}
 
 }
+
+func deleteById(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	if id, ok := vars["mongoId"]; ok {
+		sess, col, err := getCollection(req)
+		if err != nil {
+			w.WriteHeader(400)
+			io.WriteString(w, err.Error())
+			return
+		}
+
+		defer sess.Close()
+		idHex := bson.ObjectIdHex(id)
+		err = col.RemoveId(idHex)
+		if err != nil {
+			w.WriteHeader(400)
+			io.WriteString(w, err.Error())
+			return
+		}
+		w.WriteHeader(200)
+		w.Header().Set("Content-Type", "application/json")
+		io.WriteString(w, "deleted")
+	}
+
+}

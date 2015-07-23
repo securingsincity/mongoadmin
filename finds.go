@@ -61,9 +61,11 @@ func find(w http.ResponseWriter, req *http.Request) {
 	if skipQuery != "" {
 		skip, _ = strconv.Atoi(skipQuery)
 	}
-
+	body := bson.M{}
+	decoder := json.NewDecoder(req.Body)
+	err = decoder.Decode(&body)
 	r := []bson.M{}
-	err = col.Find(bson.M{}).Skip(skip).Limit(limit).All(&r)
+	err = col.Find(body["query"]).Skip(skip).Limit(limit).All(&r)
 	if err != nil {
 		w.WriteHeader(400)
 		io.WriteString(w, err.Error())

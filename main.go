@@ -109,14 +109,15 @@ func main() {
 	}).Methods("GET")
 	router.HandleFunc("/databases/{db}/collections", collections).Methods("GET")
 	router.HandleFunc("/databases/{db}/collections/{col}", insert).Methods("POST")
+
 	router.HandleFunc("/databases/{db}/collections/{col}/indexes", indexes).Methods("GET")
-	router.HandleFunc("/databases/{db}/collections/{col}/find", find).Methods("GET")
+	router.HandleFunc("/databases/{db}/collections/{col}/find", find).Methods("POST")
 	router.HandleFunc("/databases/{db}/collections/{col}/total", total).Methods("GET")
 	router.HandleFunc("/databases/{db}/collections/{col}/newIndex", addIndex).Methods("POST")
 	router.HandleFunc("/databases/{db}/collections/{col}/dropIndex", dropIndex).Methods("POST")
 	router.HandleFunc("/databases/{db}/collections/{col}/findById/{mongoId}", findById).Methods("GET")
 	router.HandleFunc("/databases/{db}/collections/{col}/update/{mongoId}", updateById).Methods("PUT", "POST")
-
+	router.HandleFunc("/databases/{db}/collections/{col}/delete/{mongoId}", deleteById).Methods("DELETE")
 	// http.Handle("/", router)
 	n := negroni.Classic()
 	// n.Use(negroni.HandlerFunc(auth.Basic(appConfig.AuthUsername, appConfig.AuthPassword)))

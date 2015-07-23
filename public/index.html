@@ -8,23 +8,23 @@
   </head>
   <body ng-app="app">
     <div class="container-fluid" ng-controller="MainCtrl">
-      <div class="row light-blue darken-1 white-text">
+      <div class="row teal white-text">
         <div class="col s12">
-          <h1>Manage DBs.</h1>
+          <h1>MongoAdmin.</h1>
         </div>
       </div>
       <div class="row">
         <div class="col s3 white-text">
           <div class="list-group ">
-            <a class="list-group-item" ng-repeat="db in dbs" ng-click="setActive(db)">
+            <a class="list-group-item teal-text" ng-repeat="db in dbs" ng-click="setActive(db)">
               <h6 class="list-group-item-heading">{{db.label}}</h4>
             </a>
           </div>
         </div>
         <div class="col s9" ng-show="activeDb">
-          <div class="teal row col12">
+          <div class="teal-text row col12">
             <h2>{{activeDb.label}}</h2>
-          
+
             <div class="input-field">
               <select ng-options="col for col in collections" class="browser-default" ng-model="activeCollection">
                 <option value=""  disabled selected>Pick a collection.</option>
@@ -41,10 +41,13 @@
               <ul class="tabs teal">
                 <li role="presentation" class="tab col s3"><a href="#find" class="white-text active">Find</a></li>
                 <li role="presentation" class="tab col s3"><a href="#findById" class="white-text">Find By Id</a></li>
+                <li role="presentation" class="tab col s3"><a href="#insert"  class="white-text">Insert</a></li>
                 <li role="presentation" class="tab col s3"><a href="#indexes"  class="white-text">Indexes</a></li>
               </ul>
+
               <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="find">
+                  <h5>Find</h5>
                   <div class="form">
                     <div class="row">
                       <div class="col s6">
@@ -62,16 +65,31 @@
                         </div>
                       </div>
                     </div>
+                    <div class="row">
+                      <div class="col s12">
+                        <div class="form-group">
+                          <label>Query</label>
+                          <input type="text" class="form-control input-sm" ng-model="findMore.query"/>
+                          <p class="help-block">Query</p>
+                        </div>
+                      </div>
+                    </div>
                   <div class="row">
                     <div class="form-group  col s12">
                       <button class="btn btn-primary" ng-click="findMoreRecords()">Find</button></div>
                     </div>
                   </div>
                   <div class="row">
-                    <div class="col s12"><pre>{{findResults | json}}</pre></div>
+                    <div class="col s12">
+                      <div class="card" ng-repeat="result in findResults">
+                        <button class="btn btn-sm right btn-danger" ng-click="deleteByIdQuery(result._id)">X</button>
+                        <pre>{{result | json}}</pre>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="findById">
+                  <h5>Find By Id</h5>
                   <div class="row">
                     <div class="col s12">
                       <div class="form-group">
@@ -87,7 +105,35 @@
                     </div>
                   </div>
                   <div class="row">
-                    <div class="col s12"><pre>{{findByIdResults | json}}</pre></div>
+                    <div class="col s12">
+                      <div class="card">
+                        <pre>{{findByIdResults | json}}</pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div role="tabpanel" class="tab-pane" id="insert">
+                  <h5>Insert Document</h5>
+                  <div class="row">
+                    <div class="col s12">
+                      <div class="form-group">
+                        <label>Document</label>
+                        <textarea type="text" class="form-control input-sm" ng-model="insert.doc"></textarea>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="form-group  col s12">
+                      <button  ng-disabled="!insert.doc" class="btn btn-primary" ng-click="insert()">Insert</button>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col s12">
+                      <div class="card">
+                        <pre>{{insertResult | json}}</pre>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="indexes">
@@ -96,16 +142,21 @@
                       <h5>Indexes</h5>
                       <ul class="list-group">
                         <li class="list-group-item" ng-repeat="idx in indexes">
-                          <button class="btn btn-sm pull-right btn-danger" ng-click="removeIndex(idx)">X</button>
-                          <h4 class="list-group-item-heading">{{idx.Name}}</h4>
-                        <pre>{{idx.Key | json}}</pre>
-                        Unique: {{idx.Unique | json}}<br/>
-                        Sparse: {{idx.Sparse | json}}
+                          <div class="card">
+
+                            <div class="card-content">
+                              <button class="btn btn-sm right btn-danger" ng-click="removeIndex(idx)">X</button>
+                              <h4 class="list-group-item-heading">{{idx.Name}}</h4>
+                              <pre>{{idx.Key | json}}</pre>
+                              Unique: {{idx.Unique | json}}<br/>
+                              Sparse: {{idx.Sparse | json}}
+                            </div>
+                          </div>
                       </li>
                     </ul>
                   </div>
                   <div class="col s6">
-                    <h6>Make an index</h6>
+                    <h5>Make an index</h5>
                     <div class="form-group">
                       <label>Keys</label>
                       <input type="text" class="form-control input-sm" ng-model="newIndex.keys"/>

@@ -5,11 +5,11 @@ authUsername = "username"
 authPassword = "password"
 
 [[db]]
-label = "local-1"
-database = "test1"
+label = "Main"
+database = "main"
 connectionString = "mongodb://localhost"
 
 [[db]]
-label = "local-2"
-database = "test2"
+label = "Reports"
+database = "reports"
 connectionString = "mongodb://localhost"

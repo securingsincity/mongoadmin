@@ -31,7 +31,7 @@ angular.module('app', [])
   };
 
   var loadFinds = function() {
-    $http.get('/databases/' + $scope.activeDb.label + '/collections/' + $scope.activeCollection + '/find').success(function(response) {
+    $http.post('/databases/' + $scope.activeDb.label + '/collections/' + $scope.activeCollection + '/find').success(function(response) {
       $scope.findResults = response;
     });
   };
@@ -51,15 +51,40 @@ angular.module('app', [])
   $scope.findMoreRecords = function() {
     var limit = $scope.findMore.limit ? $scope.findMore.limit : 50;
     var skip = $scope.findMore.skip ? $scope.findMore.skip : 0;
-    $http.get('/databases/' + $scope.activeDb.label + '/collections/' + $scope.activeCollection + '/find?limit=' + limit + '&skip=' + skip).success(function(response) {
+    var query = $scope.findMore.query ? JSON.parse($scope.findMore.query) : {};
+    $http.post('/databases/' + $scope.activeDb.label + '/collections/' + $scope.activeCollection + '/find?limit=' + limit + '&skip=' + skip, {query: query}).success(function(response) {
       $scope.findResults = response;
+    })
+    .fail(function(error) {
+      $scope.findResults = [error];
+    });
+  };
+  $scope.insert = function() {
+    var query = $scope.insert.doc ? JSON.parse($scope.insert.doc) : {};
+    if (query === {}) {
+      return false;
+    }
+    $http.post('/databases/' + $scope.activeDb.label + '/collections/' + $scope.activeCollection , query).success(function(response) {
+      $scope.insertResult = response;
     });
   };
   $scope.findByIdQuery = function() {
     var id = $scope.findById.id ? $scope.findById.id : '';
-    $http.get('/databases/' + $scope.activeDb.label + '/collections/' + $scope.activeCollection + '/findById/'+ id).success(function(response) {
-      $scope.findByIdResults = response;
-    });
+    $http.get('/databases/' + $scope.activeDb.label + '/collections/' + $scope.activeCollection + '/findById/'+ id)
+      .success(function(response) {
+        $scope.findByIdResults = response;
+      })
+      .fail(function(error) {
+        $scope.findByIdResults = error;
+      });
+  };
+  $scope.deleteByIdQuery = function(id) {
+    if(confirm('Are you sure?')) {
+      $http.delete('/databases/' + $scope.activeDb.label + '/collections/' + $scope.activeCollection + '/delete/'+ id)
+        .success(function(response) {
+          loadFinds();
+        });
+    }
   };
   $scope.addNewIndex = function() {
     var keys = $scope.newIndex.keys;
