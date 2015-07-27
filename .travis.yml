@@ -10,6 +10,7 @@ install:
 - go get .
 - go build
 script:
+- go test
 - zip release *
 deploy:
   provider: releases

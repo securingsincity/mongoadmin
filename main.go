@@ -1,4 +1,4 @@
-package main
+package mongoadmin
 
 import (
 	"encoding/json"
@@ -45,20 +45,27 @@ func getDatabase(req *http.Request) (*mgo.Session, *mgo.Database, error) {
 	vars := mux.Vars(req)
 
 	if db, ok := vars["db"]; ok {
-		for _, d := range appConfig.DB {
-			if d.Label == db {
-				sess, err := mgo.Dial(d.ConnectionString)
-				if err != nil {
-					return &mgo.Session{}, &mgo.Database{}, err
-				}
-
-				return sess, sess.DB(d.Database), nil
-			}
-		}
-		return &mgo.Session{}, &mgo.Database{}, errors.New("Could not find DB by name " + db)
+		sess, database, err := getDatabaseByName(db)
+		return sess, database, err
 	}
-
 	return &mgo.Session{}, &mgo.Database{}, errors.New("Missing db parameter")
+
+}
+
+func getDatabaseByName(db string) (*mgo.Session, *mgo.Database, error) {
+
+	for _, d := range appConfig.DB {
+		if d.Label == db {
+			sess, err := mgo.Dial(d.ConnectionString)
+			if err != nil {
+				return &mgo.Session{}, &mgo.Database{}, err
+			}
+
+			return sess, sess.DB(d.Database), nil
+		}
+	}
+	return &mgo.Session{}, &mgo.Database{}, errors.New("Could not find DB by name " + db)
+
 }
 
 func getCollection(req *http.Request) (*mgo.Session, *mgo.Collection, error) {
@@ -68,14 +75,18 @@ func getCollection(req *http.Request) (*mgo.Session, *mgo.Collection, error) {
 	if err != nil {
 		return sess, &mgo.Collection{}, err
 	}
-
 	if colname, ok := vars["col"]; ok {
-		return sess, db.C(colname), nil
+		col := getCollectionByName(db, colname)
+		return sess, col, nil
 	}
 
 	sess.Close()
 
 	return sess, &mgo.Collection{}, errors.New("Missing collection parameter")
+}
+
+func getCollectionByName(db *mgo.Database, colname string) *mgo.Collection {
+	return db.C(colname)
 }
 
 func main() {
