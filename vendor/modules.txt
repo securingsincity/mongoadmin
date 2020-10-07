@@ -1,0 +1,18 @@
+# github.com/BurntSushi/toml v0.3.1
+## explicit
+github.com/BurntSushi/toml
+# github.com/codegangsta/negroni v1.0.0
+## explicit
+github.com/codegangsta/negroni
+# github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
+## explicit
+github.com/globalsign/mgo
+github.com/globalsign/mgo/bson
+github.com/globalsign/mgo/internal/json
+github.com/globalsign/mgo/internal/sasl
+github.com/globalsign/mgo/internal/scram
+# github.com/gorilla/mux v1.8.0
+## explicit
+github.com/gorilla/mux
+# github.com/urfave/negroni v1.0.0
+## explicit
